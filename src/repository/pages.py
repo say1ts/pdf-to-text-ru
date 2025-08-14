@@ -1,27 +1,15 @@
 from sqlalchemy.orm import Session
-from src.database.models import Page
-from typing import List, Optional
+from src.database.models import Page as ORMPage
+from src.entities import Page
+from typing import List
 
-def create_page(
-    session: Session,
-    document_id: int,
-    page_number: int,
-    dpi: int,
-    width: Optional[int] = None,
-    height: Optional[int] = None
-) -> Page:
-    """Create a new Page record in the database."""
-    page = Page(
-        document_id=document_id,
-        number=page_number,
-        dpi=dpi,
-        width=width,
-        height=height
-    )
-    session.add(page)
-    session.flush()  # Ensure page_id is available
-    return page
+def create_page(session: Session, entity: Page) -> Page:
+    orm_page = entity.to_orm(ORMPage)
+    session.add(orm_page)
+    session.flush()
+    entity.page_id = orm_page.page_id
+    return entity
 
 def get_pages_by_document_id(session: Session, document_id: int) -> List[Page]:
-    """Retrieve all Pages for a given document_id."""
-    return session.query(Page).filter(Page.document_id == document_id).all()
+    orm_pages = session.query(ORMPage).filter(ORMPage.document_id == document_id).all()
+    return [Page.from_orm(orm_page) for orm_page in orm_pages]

@@ -1,79 +1,173 @@
-
-# from dataclasses import dataclass
-# from datetime import datetime
-# from typing import List, Optional
-
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-
+from typing import Optional
 
 class ContentType(Enum):
     SECTION_HEADER = "Section header"
     TITLE = "Title"
     PAGE_HEADER = "Page header"
     PAGE_FOOTER = "Page footer"
-    
     TEXT = "Text"
     LIST_ITEM = "List item"
     CAPTION = "Caption"
-    
     FOOTNOTE = "Footnote"
-    
     FORMULA = "Formula"
     PICTURE = "Picture"
     TABLE = "Table"
-    
-# @dataclass
-# class RecognizedFragment:
-#     recognized_fragment_id: int
-#     fragment_id: int
-#     recognize_processor: str
-#     result: Optional[str]
-#     recognized_at: datetime
 
-# @dataclass
-# class Fragment:
-#     fragment_id: int
-#     order_number: Optional[int]
-#     content_type: ContentType
-    
-#     left: float
-#     top: float
-#     width: float
-#     height: float
-    
-#     text: Optional[str]
-#     is_cropped: bool
-#     created_at: datetime
-#     cropped_at: Optional[datetime]
-    
-#     recognized_fragment: Optional[RecognizedFragment]
-    
-#     @property
-#     def right(self) -> float:
-#         return self.left + self.width
+@dataclass
+class Document:
+    document_id: Optional[int]
+    filename: str
+    extension: str
+    is_success_processed: bool = False
+    processed_at: Optional[datetime] = None
 
-#     @property
-#     def bottom(self) -> float:
-#         return self.top + self.height
+    def to_orm(self, orm_model):
+        return orm_model(
+            document_id=self.document_id,
+            filename=self.filename,
+            extension=self.extension,
+            is_success_processed=self.is_success_processed,
+            processed_at=self.processed_at
+        )
 
-# @dataclass
-# class Page:
-#     page_id: int
-#     original_file_id: int
-    
-#     number: int
-#     dpi: int
-#     width: int
-#     height: int
-    
-#     fragments: List[Fragment]
+    @classmethod
+    def from_orm(cls, orm_doc):
+        return cls(
+            document_id=orm_doc.document_id,
+            filename=orm_doc.filename,
+            extension=orm_doc.extension,
+            is_success_processed=orm_doc.is_success_processed,
+            processed_at=orm_doc.processed_at
+        )
 
-# @dataclass
-# class Document:
-#     document_id: int
-#     filename: str
-#     extension: Optional[str]
-#     is_success_processed: bool
-#     processed_at: datetime
-#     pages: List[Page]
-    
+@dataclass
+class Page:
+    page_id: Optional[int]
+    document_id: int
+    number: int
+    dpi: int
+    width: int
+    height: int
+
+    def to_orm(self, orm_model):
+        return orm_model(
+            page_id=self.page_id,
+            document_id=self.document_id,
+            number=self.number,
+            dpi=self.dpi,
+            width=self.width,
+            height=self.height
+        )
+
+    @classmethod
+    def from_orm(cls, orm_page):
+        return cls(
+            page_id=orm_page.page_id,
+            document_id=orm_page.document_id,
+            number=orm_page.number,
+            dpi=orm_page.dpi,
+            width=orm_page.width,
+            height=orm_page.height
+        )
+
+@dataclass
+class Fragment:
+    fragment_id: Optional[int]
+    page_id: int
+    content_type: ContentType
+    order_number: Optional[int]
+    left: float
+    top: float
+    width: float
+    height: float
+    text: Optional[str]
+    created_at: Optional[datetime] = None
+    is_cropped: bool = False
+    cropped_at: Optional[datetime] = None
+
+    def to_orm(self, orm_model):
+        return orm_model(
+            fragment_id=self.fragment_id,
+            page_id=self.page_id,
+            content_type=self.content_type.value,
+            order_number=self.order_number,
+            left=self.left,
+            top=self.top,
+            width=self.width,
+            height=self.height,
+            text=self.text,
+            created_at=self.created_at or datetime.utcnow(),
+            is_cropped=self.is_cropped,
+            cropped_at=self.cropped_at
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict, page_id: int):
+        return cls(
+            fragment_id=None,
+            page_id=page_id,
+            content_type=ContentType(data["type"]),
+            order_number=None,
+            left=data["left"],
+            top=data["top"],
+            width=data["width"],
+            height=data["height"],
+            text=data.get("text")
+        )
+
+    @classmethod
+    def from_orm(cls, orm_fragment):
+        return cls(
+            fragment_id=orm_fragment.fragment_id,
+            page_id=orm_fragment.page_id,
+            content_type=ContentType(orm_fragment.content_type),
+            order_number=orm_fragment.order_number,
+            left=orm_fragment.left,
+            top=orm_fragment.top,
+            width=orm_fragment.width,
+            height=orm_fragment.height,
+            text=orm_fragment.text,
+            created_at=orm_fragment.created_at,
+            is_cropped=orm_fragment.is_cropped,
+            cropped_at=orm_fragment.cropped_at
+        )
+
+@dataclass
+class TextFragment(Fragment):
+    pass
+
+@dataclass
+class TableFragment(Fragment):
+    pass
+
+@dataclass
+class ImageFragment(Fragment):
+    pass
+
+@dataclass
+class RecognizedFragment:
+    fragment_id: int
+    page_id: int
+    text: str
+    confidence: float
+
+    def to_orm(self, orm_model):
+        return orm_model(
+            fragment_id=self.fragment_id,
+            page_id=self.page_id,
+            text=self.text,
+            confidence=self.confidence
+        )
+
+    @classmethod
+    def from_orm(cls, orm_recognized):
+        return cls(
+            fragment_id=orm_recognized.fragment_id,
+            page_id=orm_recognized.page_id,
+            text=orm_recognized.text,
+            confidence=orm_recognized.confidence
+        )
+        

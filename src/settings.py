@@ -22,6 +22,10 @@ class Settings:
     # Database settings
     SQLALCHEMY_DATABASE_URI: str = f"sqlite:///{DB_PATH}"
     
+    # Layout analyzer settings
+    LAYOUT_ANALYZER_URL: str = "http://localhost:5060"
+    LAYOUT_ANALYZER_TIMEOUT: int = 300
+    
     # Logging settings
     LOG_FILE: Path = LOG_DIR / "convert_pdf_to_pages.log"
     LOG_LEVEL: str = "INFO"
@@ -40,6 +44,8 @@ class Settings:
             "image_fragment_path_template": cls.IMAGE_FRAGMENT_PATH_TEMPLATE,
             "image_page_path_template": cls.IMAGE_PAGE_PATH_TEMPLATE,
             "sqlalchemy_database_uri": cls.SQLALCHEMY_DATABASE_URI,
+            "layout_analyzer_url": cls.LAYOUT_ANALYZER_URL,
+            "layout_analyzer_timeout": cls.LAYOUT_ANALYZER_TIMEOUT,
             "log_file": str(cls.LOG_FILE),
             "log_level": cls.LOG_LEVEL,
         }

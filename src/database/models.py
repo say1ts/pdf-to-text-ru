@@ -16,7 +16,7 @@ class Document(Base):
     pages = relationship("Page", back_populates="document")
 
     __table_args__ = (
-        Index('ix_document_filename', 'filename'),  # Index for faster lookups by filename
+        Index('ix_document_filename', 'filename'),
     )
 
 class Page(Base):
@@ -26,13 +26,13 @@ class Page(Base):
     number = Column(Integer, nullable=False)
     dpi = Column(Integer, nullable=False)
     width = Column(Integer, nullable=False)
-    height = Column(Integer, nullable=False)  # Added height field
+    height = Column(Integer, nullable=False)
     document = relationship("Document", back_populates="pages")
     fragments = relationship("Fragment", back_populates="page")
 
     __table_args__ = (
-        Index('ix_page_document_id', 'document_id'),  # Index for faster queries by document_id
-        Index('ix_page_number', 'number'),           # Index for faster queries by page number
+        Index('ix_page_document_id', 'document_id'),
+        Index('ix_page_number', 'number'),
     )
 
 class Fragment(Base):
@@ -54,7 +54,7 @@ class Fragment(Base):
     recognized_fragments = relationship("RecognizedFragment", back_populates="fragment")
 
     __table_args__ = (
-        Index('ix_fragment_page_id', 'page_id'),  # Index for faster queries by page_id
+        Index('ix_fragment_page_id', 'page_id'),
     )
 
 class RecognizedFragment(Base):
@@ -62,11 +62,11 @@ class RecognizedFragment(Base):
 
     recognized_fragment_id = Column(Integer, primary_key=True, autoincrement=True)
     fragment_id = Column(Integer, ForeignKey('fragment.fragment_id'), nullable=False)
-    recognize_processor = Column(String, nullable=False)
-    result = Column(String, nullable=True)
+    text = Column(String, nullable=True)
+    confidence = Column(Float, nullable=True)
     recognized_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     fragment = relationship("Fragment", back_populates="recognized_fragments")
 
     __table_args__ = (
-        Index('ix_recognized_fragment_fragment_id', 'fragment_id'),  # Index for faster queries by fragment_id
+        Index('ix_recognized_fragment_fragment_id', 'fragment_id'),
     )
