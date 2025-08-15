@@ -51,8 +51,20 @@ def main():
                     logger=logger
                 )
 
-            for doc in documents:
-                logger.info({"document": doc.filename, "id": doc.document_id})
+                for doc in documents:
+                    logger.info({"document": doc.filename, "id": doc.document_id})
+        
+        
+        # 2 STAGE TEXT FRAGMENT RECOGNIZER
+        document = get_document_by_filename(session, 'test')
+        recognize_single_document(
+            document=document,
+            session=session,
+            logger=logger,
+            recognizer_type="text" 
+        )
+        # for doc in recognized_docs:
+        #     logger.info({"recognized_document": doc.filename, "id": doc.document_id})
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Dict, Any
 
+from src.entities import ContentType
+
 class Settings:
     """Application configuration."""
     
@@ -50,5 +52,30 @@ class Settings:
             "log_file": str(cls.LOG_FILE),
             "log_level": cls.LOG_LEVEL,
         }
+
+    # Recognizer settings (общие)
+    RECOGNIZER_ALLOWED_TYPES = {
+        "text": [
+            ContentType.CAPTION.value,
+            ContentType.FOOTNOTE.value,
+            ContentType.LIST_ITEM.value,
+            ContentType.PAGE_FOOTER.value,
+            ContentType.PAGE_HEADER.value,
+            ContentType.SECTION_HEADER.value,
+            ContentType.TEXT.value,
+            ContentType.TITLE.value,
+        ],
+        "table": [...], 
+        "formula": [...],
+        "image": [...],
+    }
+
+    TEXT_RECOGNIZER_MODEL_NAME = "prithivMLmods/Qwen2-VL-OCR-2B-Instruct"
+    TEXT_RECOGNIZER_PROMPT = (
+        "Extract the exact text from the image in RUSSIAN ONLY. "
+        "Do not add, complete, or invent any words, sentences, or punctuation. "
+        "Output only the raw extracted text without any modifications or assumptions."
+    )
+    TEXT_RECOGNIZER_CACHE_DIR = DATA_DIR / "cache" / "qwen2-vl-ocr-2b-instruct"
 
 settings = Settings()

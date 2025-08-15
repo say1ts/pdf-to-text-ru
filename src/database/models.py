@@ -62,7 +62,10 @@ class RecognizedFragment(Base):
 
     recognized_fragment_id = Column(Integer, primary_key=True, autoincrement=True)
     fragment_id = Column(Integer, ForeignKey('fragment.fragment_id'), nullable=False)
+    
+    recognizer = Column(String, nullable=False)
     text = Column(String, nullable=True)
+    
     confidence = Column(Float, nullable=True)
     recognized_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     fragment = relationship("Fragment", back_populates="recognized_fragments")

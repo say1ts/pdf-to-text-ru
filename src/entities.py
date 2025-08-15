@@ -96,10 +96,8 @@ class Fragment:
     width: float
     height: float
     coord_type = Optional[str]
-    
     text: Optional[str]
     created_at: Optional[datetime] = None
-    is_cropped: bool = False
     cropped_at: Optional[datetime] = None
 
     def to_orm(self, orm_model):
@@ -147,7 +145,6 @@ class Fragment:
             height=orm_fragment.height,
             text=orm_fragment.text,
             created_at=orm_fragment.created_at,
-            is_cropped=orm_fragment.is_cropped,
             cropped_at=orm_fragment.cropped_at
         )
 
@@ -165,15 +162,18 @@ class ImageFragment(Fragment):
 
 @dataclass
 class RecognizedFragment:
+    recognized_fragment_id: Optional[int]
     fragment_id: int
-    page_id: int
+    
+    recognizer: str
     text: str
-    confidence: float
+    confidence: Optional[float]
 
     def to_orm(self, orm_model):
         return orm_model(
+            recognized_fragment_id=self.recognized_fragment_id,
             fragment_id=self.fragment_id,
-            page_id=self.page_id,
+            recognizer=self.recognizer,
             text=self.text,
             confidence=self.confidence
         )
@@ -181,8 +181,9 @@ class RecognizedFragment:
     @classmethod
     def from_orm(cls, orm_recognized):
         return cls(
+            recognized_fragment_id=orm_recognized.recognized_fragment_id,
             fragment_id=orm_recognized.fragment_id,
-            page_id=orm_recognized.page_id,
+            recognizer=orm_recognized.recognizer,
             text=orm_recognized.text,
             confidence=orm_recognized.confidence
         )
