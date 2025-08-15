@@ -1,9 +1,9 @@
 from pathlib import Path
 import requests
-import logging
-from typing import List, Dict, Any
+from typing import List
 from src.config import config_provider
-from src.entities import Fragment, ContentType
+from src.entities import Fragment, RawFragment
+from src.utils.raw_fragment_validators import validate_fragment_dict
 
 settings = config_provider.get_settings()
 logger = config_provider.get_logger(__name__)
@@ -20,21 +20,11 @@ class ServerError(LayoutAnalyzerError):
 class InvalidJsonError(LayoutAnalyzerError):
     pass
 
-def validate_json_fragment(fragment: Dict[str, Any]) -> bool:
-    required_fields = {"left", "top", "width", "height", "page_number", "page_width", "page_height", "type"}
-    if not all(field in fragment for field in required_fields):
-        return False
-    try:
-        ContentType(fragment["type"])
-        return fragment["width"] >= 20 and fragment["height"] >= 10
-    except ValueError:
-        return False
-
 def analyze_pdf(file_path: str) -> List[Fragment]:
     try:
         if not Path(file_path).is_file():
             raise FileNotFoundError(f"File {file_path} not found")
-            
+
         with open(file_path, 'rb') as f:
             files = {'file': (Path(file_path).name, f, 'application/pdf')}
             response = requests.post(
@@ -43,15 +33,16 @@ def analyze_pdf(file_path: str) -> List[Fragment]:
                 timeout=settings.LAYOUT_ANALYZER_TIMEOUT
             )
         response.raise_for_status()
-        
-        # Здесь нужно сделать typed_dict или named_tuple
-        data = response.json()
-        
-        # ПОЧЕМУ ЗДЕСЬ НЕ DICT со страницами в качестве индексов
-        valid_fragments = [Fragment.from_dict(fragment, page_id=fragment["page_number"]) for fragment in data if validate_json_fragment(fragment)]
+
+        raw_data: List[RawFragment] = response.json()
+        valid_fragments = [
+            Fragment.from_dict(raw_fragment)
+            for raw_fragment in raw_data
+            if validate_fragment_dict(raw_fragment)
+        ]
         logger.debug(
             "Processed PDF file",
-            extra={"file": file_path, "fragments_received": len(data), "fragments_valid": len(valid_fragments)}
+            extra={"file": file_path, "fragments_received": len(raw_data), "fragments_valid": len(valid_fragments)}
         )
         return valid_fragments
     except FileNotFoundError as e:

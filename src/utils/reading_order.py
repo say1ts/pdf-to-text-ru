@@ -1,4 +1,4 @@
-from typing import List, NamedTuple, Callable
+from typing import List
 import numpy as np
 from sklearn.cluster import KMeans
 from src.entities import Fragment
@@ -39,13 +39,3 @@ class ReadingOrderService:
 
 def get_default_order(fragments: List[Fragment]) -> List[int]:
     return list(range(len(fragments)))
-
-def visualize_fragments(fragments: List[Fragment], order: List[int], width: int = 595, height: int = 842) -> np.ndarray:
-    import cv2
-    img = np.ones((height, width, 3), dtype=np.uint8) * 255
-    for idx, fragment in enumerate(fragments):
-        left, top = fragment.left, fragment.top
-        right, bottom = left + fragment.width, top + fragment.height
-        cv2.rectangle(img, (int(left), int(top)), (int(right), int(bottom)), (0, 255, 0), 2)
-        cv2.putText(img, str(order[idx]), (int(left), int(top) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-    return img

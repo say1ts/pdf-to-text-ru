@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, TypedDict
 
 class ContentType(Enum):
     SECTION_HEADER = "Section header"
@@ -73,10 +73,22 @@ class Page:
             height=orm_page.height
         )
 
+class RawFragment(TypedDict):
+    left: float
+    top: float
+    width: float
+    height: float
+    page_number: int
+    page_width: int
+    page_height: int
+    type: str
+    text: str | None
+
 @dataclass
 class Fragment:
     fragment_id: Optional[int]
-    page_id: int
+    page_id: Optional[int]
+    page_number: Optional[int]
     content_type: ContentType
     order_number: Optional[int]
     left: float
@@ -92,6 +104,7 @@ class Fragment:
         return orm_model(
             fragment_id=self.fragment_id,
             page_id=self.page_id,
+            page_number=self.page_number,
             content_type=self.content_type.value,
             order_number=self.order_number,
             left=self.left,
@@ -100,15 +113,15 @@ class Fragment:
             height=self.height,
             text=self.text,
             created_at=self.created_at or datetime.utcnow(),
-            is_cropped=self.is_cropped,
             cropped_at=self.cropped_at
         )
 
     @classmethod
-    def from_dict(cls, data: dict, page_id: int):
+    def from_dict(cls, data: dict, page_id: int = None):
         return cls(
             fragment_id=None,
             page_id=page_id,
+            page_number=data["page_number"],
             content_type=ContentType(data["type"]),
             order_number=None,
             left=data["left"],
@@ -123,6 +136,7 @@ class Fragment:
         return cls(
             fragment_id=orm_fragment.fragment_id,
             page_id=orm_fragment.page_id,
+            page_number=orm_fragment.page_number,
             content_type=ContentType(orm_fragment.content_type),
             order_number=orm_fragment.order_number,
             left=orm_fragment.left,

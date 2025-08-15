@@ -16,8 +16,8 @@ class Settings:
     # Image settings
     IMAGE_FORMAT: str = "PNG"
     IMAGE_QUALITY: int = 85
-    IMAGE_FRAGMENT_PATH_TEMPLATE: str = "{filename}/fragment_{page_number}_{order_id}_{fragment_id}_fragment_id.{extension}"
-    IMAGE_PAGE_PATH_TEMPLATE: str = "{filename}/page_{page_number}_{page_id}_page_id.{extension}"
+    IMAGE_FRAGMENT_PATH_TEMPLATE: str = "{filename}/frag_p{page_number}_o{order_number}_i{fragment_id}_{content_type}.{extension}"
+    IMAGE_PAGE_PATH_TEMPLATE: str = "{filename}/page_{page_number}_i{page_id}.{extension}"
     
     # Database settings
     SQLALCHEMY_DATABASE_URI: str = f"sqlite:///{DB_PATH}"
@@ -28,7 +28,8 @@ class Settings:
     
     # Logging settings
     LOG_FILE: Path = LOG_DIR / "convert_pdf_to_pages.log"
-    LOG_LEVEL: str = "INFO"
+    # LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str = "DEBUG"
     
     @classmethod
     def to_dict(cls) -> Dict[str, Any]:

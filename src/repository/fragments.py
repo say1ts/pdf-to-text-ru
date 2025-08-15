@@ -1,29 +1,21 @@
 from sqlalchemy.orm import Session
 from src.database.models import Fragment as ORMFragment
-from src.entities import Fragment as EntityFragment, TextFragment, TableFragment, ImageFragment, ContentType
+from src.entities import Fragment
 from typing import List
 from datetime import datetime
 
-def create_fragment(session: Session, entity: EntityFragment) -> EntityFragment:
+def create_fragment(session: Session, entity: Fragment) -> Fragment:
     orm_fragment = entity.to_orm(ORMFragment)
     session.add(orm_fragment)
     session.flush()
     entity.fragment_id = orm_fragment.fragment_id
-    
-    # Return appropriate subtype
-    if entity.content_type == ContentType.TEXT:
-        return TextFragment(**vars(entity))
-    elif entity.content_type == ContentType.TABLE:
-        return TableFragment(**vars(entity))
-    elif entity.content_type == ContentType.PICTURE:
-        return ImageFragment(**vars(entity))
     return entity
 
-def get_fragments_by_page_id(session: Session, page_id: int) -> List[EntityFragment]:
+def get_fragments_by_page_id(session: Session, page_id: int) -> List[Fragment]:
     orm_fragments = session.query(ORMFragment).filter(ORMFragment.page_id == page_id).all()
-    return [EntityFragment.from_orm(orm_fragment) for orm_fragment in orm_fragments]
+    return [Fragment.from_orm(orm_fragment) for orm_fragment in orm_fragments]
 
-def update_fragment_crop_status(session: Session, entity: EntityFragment, is_cropped: bool) -> None:
+def update_fragment_crop_status(session: Session, entity: Fragment, is_cropped: bool) -> None:
     orm_fragment = session.query(ORMFragment).filter(ORMFragment.fragment_id == entity.fragment_id).first()
     if orm_fragment:
         orm_fragment.is_cropped = is_cropped
@@ -32,7 +24,7 @@ def update_fragment_crop_status(session: Session, entity: EntityFragment, is_cro
         entity.cropped_at = orm_fragment.cropped_at
         session.flush()
 
-def update_fragment_order(session: Session, entity: EntityFragment, order_number: int) -> None:
+def update_fragment_order(session: Session, entity: Fragment, order_number: int) -> None:
     orm_fragment = session.query(ORMFragment).filter(ORMFragment.fragment_id == entity.fragment_id).first()
     if orm_fragment:
         orm_fragment.order_number = order_number

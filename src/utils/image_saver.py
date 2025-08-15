@@ -32,8 +32,9 @@ def save_fragment_image(
     image_path = output_dir / settings.IMAGE_FRAGMENT_PATH_TEMPLATE.format(
         filename=filename,
         page_number=page_number,
-        order_id=fragment.order_number or 0,
+        order_number=fragment.order_number or 0,
         fragment_id=fragment.fragment_id,
+        content_type=fragment.content_type,
         extension=extension
     )
     image_path.parent.mkdir(parents=True, exist_ok=True)
