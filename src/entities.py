@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional, TypedDict
+from typing import Optional, Tuple, TypedDict
 
 class ContentType(Enum):
     SECTION_HEADER = "Section header"
@@ -95,6 +95,8 @@ class Fragment:
     top: float
     width: float
     height: float
+    coord_type = Optional[str]
+    
     text: Optional[str]
     created_at: Optional[datetime] = None
     is_cropped: bool = False
@@ -117,17 +119,17 @@ class Fragment:
         )
 
     @classmethod
-    def from_dict(cls, data: dict, page_id: int = None):
+    def from_dict(cls, data: dict, coords: Tuple[int, int, int, int], page_id: int = None):
         return cls(
             fragment_id=None,
             page_id=page_id,
             page_number=data["page_number"],
             content_type=ContentType(data["type"]),
             order_number=None,
-            left=data["left"],
-            top=data["top"],
-            width=data["width"],
-            height=data["height"],
+            left=coords[0],
+            top=coords[1],
+            width=coords[2],
+            height=coords[3],
             text=data.get("text")
         )
 

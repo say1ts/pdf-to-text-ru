@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Tuple
 from PIL import Image
 from src.config import config_provider
 from src.entities import Fragment
@@ -21,12 +20,14 @@ def save_fragment_image(
     filename: str,
     page_number: int,
     fragment: Fragment,
-    crop_box: Tuple[int, int, int, int]
 ) -> Path:
     """
     Вырезает и сохраняет изображение фрагмента, используя готовые координаты в пикселях.
     """
-    fragment_image = page_image.crop(crop_box)
+    fragment_image = page_image.crop((
+        fragment.left, fragment.top, 
+        fragment.width, fragment.height
+    ))
 
     extension = settings.IMAGE_FORMAT.lower()
     image_path = output_dir / settings.IMAGE_FRAGMENT_PATH_TEMPLATE.format(

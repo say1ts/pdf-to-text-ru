@@ -11,10 +11,13 @@ def correct_coord(coord: int, correction: int, max_val = float('inf')):
     return new_coord
 
 
-def scale_coordinates(
-    coords: Tuple[float, float, float, float], 
+def scale_coordinates_from_pt_to_px(
+    left: float, 
+    top: float,
+    width: float, 
+    height: float, 
+    max_coord: Tuple[int, int],
     dpi: int,
-    max_coord: Tuple[int, int]
 ) -> Tuple[int, int, int, int]:
     """
     Масштабирует координаты из пунктов (pt) в пиксели (px) с учетом DPI.
@@ -26,7 +29,6 @@ def scale_coordinates(
     Returns:
         Кортеж с целочисленными координатами (left, top, right, bottom) в пикселях.
     """
-    left, top, width, height = coords
     scale_factor = dpi / POINTS_PER_INCH
 
     px_left = int(left * scale_factor)

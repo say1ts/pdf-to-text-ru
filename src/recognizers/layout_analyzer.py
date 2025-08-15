@@ -35,11 +35,12 @@ def analyze_pdf(file_path: str) -> List[Fragment]:
         response.raise_for_status()
 
         raw_data: List[RawFragment] = response.json()
-        valid_fragments = [
-            Fragment.from_dict(raw_fragment)
+        valid_fragments = tuple(
+            raw_fragment
             for raw_fragment in raw_data
             if validate_fragment_dict(raw_fragment)
-        ]
+        )
+            
         logger.debug(
             "Processed PDF file",
             extra={"file": file_path, "fragments_received": len(raw_data), "fragments_valid": len(valid_fragments)}

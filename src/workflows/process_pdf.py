@@ -1,27 +1,42 @@
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict, Callable
+from typing import List, Optional, Dict, Callable, Tuple
 from sqlalchemy.orm import Session
 from PIL import Image
 import logging
-
-from icecream import ic
 
 from src.converters.pdf_to_page_images import get_all_pdf_files, convert_pdf_to_images, PdfConversionError, PageConversionResult
 from src.repository import documents as doc_repo, pages as page_repo, fragments as fragment_repo
 from src.recognizers.layout_analyzer import analyze_pdf, LayoutAnalyzerError
 from src.utils.image_saver import save_page_image, save_fragment_image
-from src.utils.coordinates import scale_coordinates
-from src.entities import Document, Page, Fragment
+from src.utils.coordinates import scale_coordinates_from_pt_to_px
+from src.entities import Document, Fragment, Page, RawFragment
 
 
-def group_fragments_by_page_number(fragments: List[Fragment]) -> Dict[int, List[Fragment]]:
+def group_fragments_by_page_number(fragments: List[RawFragment]) -> Dict[int, List[RawFragment]]:
     """Группирует фрагменты по номеру страницы (page_number из анализатора)."""
-    pages: Dict[int, List[Fragment]] = defaultdict(list)
+    pages: Dict[int, List[RawFragment]] = defaultdict(list)
     for fragment in fragments:
-        pages[fragment.page_number].append(fragment)
+        pages[fragment['page_number']].append(fragment)
     return pages
+
+def convert_raw_fragments_to_fragments(
+    raw_page_fragments: List[RawFragment], dpi: int, image_size: Tuple[int, int]) -> List[Fragment]:
+    page_fragments = []
+    
+    for raw_fr in raw_page_fragments:
+        px_crop_box = scale_coordinates_from_pt_to_px(
+            raw_fr['left'], 
+            raw_fr['top'], 
+            raw_fr['width'],
+            raw_fr['height'],
+            image_size,
+            dpi
+        )
+        page_fragments.append(Fragment.from_dict(raw_fr, px_crop_box))
+    return page_fragments
+    
 
 class PdfProcessor:
     """
@@ -54,12 +69,12 @@ class PdfProcessor:
 
         try:
             # 1. Анализируем разметку документа
-            fragments = analyze_pdf(str(self.pdf_path))
-            fragments_by_page = group_fragments_by_page_number(fragments)
+            raw_fragments = analyze_pdf(str(self.pdf_path))
+            grouped_raw_fragments_by_page = group_fragments_by_page_number(raw_fragments)
 
             # 2. Конвертируем PDF в изображения и обрабатываем постранично
             for result in convert_pdf_to_images(self.pdf_path, dpi=self.dpi):
-                self._process_page(result, fragments_by_page)
+                self._process_page(result, grouped_raw_fragments_by_page)
 
             # 3. Завершаем обработку
             self._finalize_processing(success=True)
@@ -83,7 +98,7 @@ class PdfProcessor:
         self.document = doc
         return True
 
-    def _process_page(self, conv_result: PageConversionResult, all_fragments: Dict[int, List[Fragment]]):
+    def _process_page(self, conv_result: PageConversionResult, all_fragments: Dict[int, List[RawFragment]]):
         """Обрабатывает одну страницу: сохраняет, создает сущности, нарезает фрагменты."""
         if conv_result.error or not conv_result.image:
             self.logger.error({"file": self.filename, "page": conv_result.page_number, "error": conv_result.error})
@@ -93,11 +108,13 @@ class PdfProcessor:
         page = self._create_and_save_page(conv_result)
 
         # 2.1 Получаем фрагменты для текущей страницы
-        page_fragments = all_fragments.get(page.number, [])
-        if not page_fragments:
+        raw_fragments = all_fragments.get(page.number, [])
+        if not raw_fragments:
             return
 
-        # 2.2 Определяем и сохраняем порядок чтения
+        # 2.2 Преобразовываем сырые фрагменты
+        page_fragments = convert_raw_fragments_to_fragments(
+            raw_fragments, self.dpi, conv_result.image._size)
         self._set_fragments_order(page_fragments)
         
         # 3. Создаем записи о фрагментах в БД и нарезаем фрагменты по координатам
@@ -129,15 +146,12 @@ class PdfProcessor:
     def _crop_and_save_fragments(self, page_image: Image.Image, page_number: int, fragments: List[Fragment]):
         for fragment in fragments:
             try:
-                pt_coords = (fragment.left, fragment.top, fragment.width, fragment.height)
-                px_crop_box = scale_coordinates(pt_coords, self.dpi, page_image._size)
                 save_fragment_image(
                     page_image=page_image,
                     output_dir=self.output_dir,
                     filename=self.filename,
                     page_number=page_number,
                     fragment=fragment,
-                    crop_box=px_crop_box
                 )
             except Exception as e:
                 self.logger.error({
