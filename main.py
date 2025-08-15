@@ -19,7 +19,7 @@ def main():
     order_strategy = ReadingOrderService().get_reading_order # get_default_order  # or ReadingOrderService().get_reading_order
 
     docker_run_command = [
-        "sudo", "docker", "run", "--name", "pla", "--gpus", '"device=0"',
+        "docker", "run", "--name", "pla", "--gpus", '"device=0"',
         "-p", "5060:5060", "--entrypoint", "./start.sh", "huridocs/pdf-document-layout-analysis:v0.0.24"
     ]
 

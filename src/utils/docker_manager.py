@@ -13,13 +13,13 @@ class DockerContainerManager:
 
     def _container_exists(self) -> bool:
         try:
-            subprocess.check_output(["sudo", "docker", "inspect", self.container_name])
+            subprocess.check_output(["docker", "inspect", self.container_name])
             return True
         except subprocess.CalledProcessError:
             return False
 
     def _container_is_running(self) -> bool:
-        status = subprocess.check_output(["sudo", "docker", "ps", "-f", f"name={self.container_name}", "-q"]).decode().strip()
+        status = subprocess.check_output(["docker", "ps", "-f", f"name={self.container_name}", "-q"]).decode().strip()
         return bool(status)
 
     def start(self) -> None:
@@ -32,7 +32,7 @@ class DockerContainerManager:
             self.logger.critical("You need to set bigger await span for download docker image!")
         elif not self._container_is_running():
             self.logger.info(f"Starting existing container {self.container_name}")
-            subprocess.run(["sudo", "docker", "start", self.container_name], check=True)
+            subprocess.run(["docker", "start", self.container_name], check=True)
             
             awaiting_time = 10
             self.logger.info(f"Awaiting {awaiting_time} seconds for relaunch container")
@@ -47,7 +47,7 @@ class DockerContainerManager:
             return 
         if self._container_is_running():
             self.logger.info(f"Stopping container {self.container_name}")
-            subprocess.run(["sudo", "docker", "stop", self.container_name], check=True)
+            subprocess.run(["docker", "stop", self.container_name], check=True)
         else:
             self.logger.info(f"Container {self.container_name} not running")
 
