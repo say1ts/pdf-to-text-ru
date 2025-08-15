@@ -38,16 +38,20 @@ class DockerContainerManager:
             self.logger.info(f"Awaiting {awaiting_time} seconds for relaunch container")
             time.sleep(awaiting_time)
         else:
+            # TODO прописать конкретное условие проверки запущенного контейнера
             self.already_run = True
             self.logger.info(f"Container {self.container_name} already running")
 
     def stop(self) -> None:
         if self.already_run:
             self.logger.info(f"Container is not stopped {self.container_name}, becouse was already started at the start of the program")
+            self.logger.warning("Be careful, VRAM probably MAY RUN OUT")
             return 
         if self._container_is_running():
             self.logger.info(f"Stopping container {self.container_name}")
             subprocess.run(["docker", "stop", self.container_name], check=True)
+            self.logger.info("Waiting 5 seconds for docker shutdown")
+            time.sleep(5)  # Ожидание закрытия докера
         else:
             self.logger.info(f"Container {self.container_name} not running")
 

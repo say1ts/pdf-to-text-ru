@@ -15,15 +15,6 @@ def get_fragments_by_page_id(session: Session, page_id: int) -> List[Fragment]:
     orm_fragments = session.query(ORMFragment).filter(ORMFragment.page_id == page_id).all()
     return [Fragment.from_orm(orm_fragment) for orm_fragment in orm_fragments]
 
-def update_fragment_crop_status(session: Session, entity: Fragment, is_cropped: bool) -> None:
-    orm_fragment = session.query(ORMFragment).filter(ORMFragment.fragment_id == entity.fragment_id).first()
-    if orm_fragment:
-        orm_fragment.is_cropped = is_cropped
-        orm_fragment.cropped_at = datetime.utcnow() if is_cropped else None
-        entity.is_cropped = is_cropped
-        entity.cropped_at = orm_fragment.cropped_at
-        session.flush()
-
 def update_fragment_order(session: Session, entity: Fragment, order_number: int) -> None:
     orm_fragment = session.query(ORMFragment).filter(ORMFragment.fragment_id == entity.fragment_id).first()
     if orm_fragment:

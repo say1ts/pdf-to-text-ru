@@ -57,7 +57,7 @@ class ConfigProvider:
 		stream_handler = logging.StreamHandler()
 		stream_handler.setFormatter(formatter)
 		
-		logger.addHandler(file_handler)
+		# logger.addHandler(file_handler)
 		logger.addHandler(stream_handler)
 		return logger
 

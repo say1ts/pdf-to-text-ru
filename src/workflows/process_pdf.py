@@ -200,7 +200,7 @@ def process_single_pdf(
 
 
 def process_bulk_pdf(
-    pdf_folder: Path,
+    pdf_files: List[Path],
     output_dir: Path,
     dpi: int,
     session: Session,
@@ -210,12 +210,6 @@ def process_bulk_pdf(
     """
     Обрабатывает все PDF-файлы в указанной директории.
     """
-    try:
-        pdf_files = get_all_pdf_files(pdf_folder)
-    except FileNotFoundError:
-        logger.warning(f"No PDF files found in {pdf_folder}")
-        return []
-
     processed_docs = []
     for pdf_path in pdf_files:
         logger.info(f"Starting processing for {pdf_path.name}")
