@@ -35,7 +35,7 @@ def save_fragment_image(
         page_number=page_number,
         order_number=fragment.order_number or 0,
         fragment_id=fragment.fragment_id,
-        content_type=fragment.content_type,
+        content_type=fragment.content_type.value.lower(),
         extension=extension
     )
     image_path.parent.mkdir(parents=True, exist_ok=True)
