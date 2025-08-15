@@ -33,7 +33,7 @@ def scale_coordinates_from_pt_to_px(
 
     px_left = int(left * scale_factor)
     px_top = correct_coord(int(top * scale_factor), -4)        
-    px_right = correct_coord(int((left + width) * scale_factor), 4, max_coord[0])
-    px_bottom = int((top + height) * scale_factor)
+    px_right = correct_coord(int((left + width) * scale_factor), 6, max_coord[0])
+    px_bottom = correct_coord(int((top + height) * scale_factor), 4, max_coord[1])
 
     return (px_left, px_top, px_right, px_bottom)
