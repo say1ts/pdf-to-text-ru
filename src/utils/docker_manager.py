@@ -51,7 +51,7 @@ class DockerContainerManager:
             self.logger.info(f"Stopping container {self.container_name}")
             subprocess.run(["docker", "stop", self.container_name], check=True)
             self.logger.info("Waiting 5 seconds for docker shutdown")
-            time.sleep(5)  # Ожидание закрытия докера
+            time.sleep(5)
         else:
             self.logger.info(f"Container {self.container_name} not running")
 

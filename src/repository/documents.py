@@ -23,3 +23,4 @@ def update_document_status(session: Session, entity: Document) -> None:
         orm_doc.is_success_processed = entity.is_success_processed
         orm_doc.processed_at = entity.processed_at
         session.flush()
+        

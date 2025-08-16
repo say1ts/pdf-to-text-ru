@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from PIL import Image
 import logging
 
-from src.converters.pdf_to_page_images import get_all_pdf_files, convert_pdf_to_images, PdfConversionError, PageConversionResult
+from src.converters.pdf_to_page_images import convert_pdf_to_images, PdfConversionError, PageConversionResult
 from src.repository import documents as doc_repo, pages as page_repo, fragments as fragment_repo
 from src.recognizers.layout_analyzer import analyze_pdf, LayoutAnalyzerError
 from src.utils.image_saver import save_page_image, save_fragment_image
@@ -140,7 +140,7 @@ class PdfProcessor:
 
     def _create_fragments(self, page: Page, fragments: List[Fragment]):
         for frag in fragments:
-            frag.page_id = page.page_id  # Теперь устанавливаем только здесь
+            frag.page_id = page.page_id
             fragment_repo.create_fragment(self.session, frag)
 
     def _crop_and_save_fragments(self, page_image: Image.Image, page_number: int, fragments: List[Fragment]):
@@ -167,8 +167,6 @@ class PdfProcessor:
         ordered_indices = self.order_strategy(fragments)
         for order_num, original_index in enumerate(ordered_indices):
             fragments[original_index].order_number = order_num
-            
-        # self.logger.info({"page": fragments[0].page_id, "fragments_ordered": len(ordered_indices)})/
 
 
     def _finalize_processing(self, success: bool):

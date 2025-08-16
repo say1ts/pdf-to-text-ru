@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from src.database.models import Fragment as ORMFragment
 from src.entities import Fragment
 from typing import List
-from datetime import datetime
 
 def create_fragment(session: Session, entity: Fragment) -> Fragment:
     orm_fragment = entity.to_orm(ORMFragment)
@@ -21,3 +20,4 @@ def update_fragment_order(session: Session, entity: Fragment, order_number: int)
         orm_fragment.order_number = order_number
         entity.order_number = order_number
         session.flush()
+        

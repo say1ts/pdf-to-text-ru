@@ -3,7 +3,7 @@ from typing import Optional
 import torch
 from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 from src.config import config_provider
-from qwen_vl_utils import process_vision_info  # Утилита для vision
+from qwen_vl_utils import process_vision_info
 
 from .base_recognizer import BaseRecognizer
 
@@ -78,3 +78,4 @@ class TextRecognizer(BaseRecognizer):
 
         logger.debug(f"Recognized text preview: {output_text[:200]}")
         return output_text if output_text.strip() else None
+    

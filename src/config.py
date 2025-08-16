@@ -10,29 +10,21 @@ class JsonFormatter(Formatter):
     """
     def format(self, record: logging.LogRecord) -> str:
         """Formats a log record into a JSON string."""
-        # Используем getMessage() для безопасного форматирования основного сообщения
         record.message = record.getMessage()
-        
-        # Создаем базовый объект для лога
         log_object = {
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
             "message": record.message,
         }
-
-        # Добавляем кастомный контекст из LoggerAdapter
         if hasattr(record, 'context_module'):
             log_object['module'] = record.context_module
 
-        # Добавляем любые другие поля, переданные через `extra`
-        # Исключаем стандартные атрибуты, чтобы избежать дублирования
         standard_attrs = set(logging.LogRecord('', '', '', '', '', '', '', '').__dict__.keys())
         extra_fields = {key: value for key, value in record.__dict__.items() if key not in standard_attrs and key not in log_object}
         
         if extra_fields:
             log_object['extra'] = extra_fields
 
-        # Преобразуем словарь в JSON-строку
         return json.dumps(log_object, ensure_ascii=False)
 
 class ConfigProvider:
@@ -45,7 +37,6 @@ class ConfigProvider:
 		logger = logging.getLogger(__name__)
 		logger.setLevel(self.settings.LOG_LEVEL)
 
-		# Удаляем все существующие обработчики, чтобы избежать дублирования
 		if logger.hasHandlers():
 			logger.handlers.clear()
 
@@ -57,7 +48,6 @@ class ConfigProvider:
 		stream_handler = logging.StreamHandler()
 		stream_handler.setFormatter(formatter)
 		
-		# logger.addHandler(file_handler)
 		logger.addHandler(stream_handler)
 		return logger
 
@@ -71,5 +61,4 @@ class ConfigProvider:
 	def get_settings(self) -> BaseSettings:
 		return self.settings
 
-# Global provider
 config_provider = ConfigProvider()

@@ -30,7 +30,6 @@ class Settings:
     
     # Logging settings
     LOG_FILE: Path = LOG_DIR / "convert_pdf_to_pages.log"
-    # LOG_LEVEL: str = "INFO"
     LOG_LEVEL: str = "DEBUG"
     
     @classmethod

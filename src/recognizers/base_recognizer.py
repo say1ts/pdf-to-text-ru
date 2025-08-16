@@ -6,3 +6,4 @@ class BaseRecognizer(ABC):
     @abstractmethod
     def recognize_image(self, image_path: Path) -> Optional[str]:
         pass
+    
