@@ -31,26 +31,6 @@ class Settings:
     # Logging settings
     LOG_FILE: Path = LOG_DIR / "convert_pdf_to_pages.log"
     LOG_LEVEL: str = "DEBUG"
-    
-    @classmethod
-    def to_dict(cls) -> Dict[str, Any]:
-        """Return settings as a dictionary."""
-        return {
-            "base_dir": str(cls.BASE_DIR),
-            "pdf_input_dir": str(cls.PDF_INPUT_DIR),
-            "image_output_dir": str(cls.IMAGE_OUTPUT_DIR),
-            "log_dir": str(cls.LOG_DIR),
-            "db_path": str(cls.DB_PATH),
-            "image_format": cls.IMAGE_FORMAT,
-            "image_quality": cls.IMAGE_QUALITY,
-            "image_fragment_path_template": cls.IMAGE_FRAGMENT_PATH_TEMPLATE,
-            "image_page_path_template": cls.IMAGE_PAGE_PATH_TEMPLATE,
-            "sqlalchemy_database_uri": cls.SQLALCHEMY_DATABASE_URI,
-            "layout_analyzer_url": cls.LAYOUT_ANALYZER_URL,
-            "layout_analyzer_timeout": cls.LAYOUT_ANALYZER_TIMEOUT,
-            "log_file": str(cls.LOG_FILE),
-            "log_level": cls.LOG_LEVEL,
-        }
 
     # Recognizer settings (общие)
     RECOGNIZER_ALLOWED_TYPES = {
@@ -63,9 +43,11 @@ class Settings:
             ContentType.SECTION_HEADER.value,
             ContentType.TEXT.value,
             ContentType.TITLE.value,
+            
+            ContentType.FORMULA.value,
         ],
         "table": [...], 
-        "formula": [...],
+        "formula": [ContentType.FORMULA.value],
         "image": [...],
     }
 
@@ -76,5 +58,9 @@ class Settings:
         "Output only the raw extracted text without any modifications or assumptions."
     )
     TEXT_RECOGNIZER_CACHE_DIR = DATA_DIR / "cache" / "qwen2-vl-ocr-2b-instruct"
-
+    
+    # Formula recognizer settings
+    FORMULA_RECOGNIZER_MODEL_BACKEND: str = "onnx"
+    FORMULA_RECOGNIZER_MODEL_DIR: Path = DATA_DIR / "cache" / "pix2text-mfr-onnx"
+    
 settings = Settings()

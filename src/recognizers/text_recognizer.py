@@ -45,6 +45,7 @@ def load_model() -> None:
         raise ModelLoadError(f"Failed to load model: {str(e)}")
 
 class TextRecognizer(BaseRecognizer):
+    recognizer_type = "text-qwen2-vl-ocr-2b-instruct"
     def recognize_image(self, image_path: Path) -> Optional[str]:
         load_model()
         if not image_path.exists():

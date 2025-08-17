@@ -90,7 +90,7 @@ def recognize_single_document(
         return document
 
     recognizer = get_recognizer_instance(recognizer_type)
-    recognizer_name = f"{recognizer_type}-qwen2-vl-ocr-2b-instruct"
+    recognizer_name = recognizer.recognizer_type
 
     results = map(
         lambda f: process_single_fragment(session, f, recognizer, recognizer_name, settings.IMAGE_OUTPUT_DIR, document.filename),

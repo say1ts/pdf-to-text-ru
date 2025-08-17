@@ -15,7 +15,7 @@ def get_document_by_filename(session: Session, filename: str) -> Optional[Docume
     return Document.from_orm(orm_doc) if orm_doc else None
 
 def get_cut_documents(session: Session) -> Optional[List[ORMDocument]]:
-    return session.query(ORMDocument).filter(ORMDocument.is_success_processed).first()
+    return session.query(ORMDocument).filter(ORMDocument.is_success_processed).all()
 
 def update_document_status(session: Session, entity: Document) -> None:
     orm_doc = session.query(ORMDocument).filter(ORMDocument.document_id == entity.document_id).first()
