@@ -6,17 +6,23 @@ from pdf2image import pdfinfo_from_path, convert_from_path
 
 class PDFPageCountError(Exception):
     """Custom exception for PDF conversion errors."""
+
     pass
+
 
 class PdfConversionError(Exception):
     """Custom exception for PDF conversion errors."""
+
     pass
+
 
 class PageConversionResult(NamedTuple):
     """Result of converting a single PDF page."""
+
     page_number: int
     image: Optional[Image.Image]
     error: Optional[str]
+
 
 def validate_pdf_folder(pdf_folder: str) -> Path:
     """Validates and returns the PDF folder path."""
@@ -24,6 +30,7 @@ def validate_pdf_folder(pdf_folder: str) -> Path:
     if not folder.exists() or not folder.is_dir():
         raise ValueError(f"Directory {pdf_folder} does not exist or is not a directory")
     return folder
+
 
 def get_first_pdf_file(pdf_folder: str) -> Path:
     """Returns the first PDF file found in the specified folder.
@@ -42,6 +49,7 @@ def get_first_pdf_file(pdf_folder: str) -> Path:
     for file_path in folder.glob("*.pdf"):
         return file_path
     raise FileNotFoundError(f"No PDF files found in {folder}")
+
 
 def get_all_pdf_files(pdf_folder: str) -> List[Path]:
     """Returns a list of all PDF files in the specified folder.
@@ -62,6 +70,7 @@ def get_all_pdf_files(pdf_folder: str) -> List[Path]:
         raise FileNotFoundError(f"No PDF files found in {folder}")
     return pdf_files
 
+
 def get_pdf_page_count(pdf_path: Path) -> int:
     """Returns the total number of pages in a PDF file.
 
@@ -80,7 +89,10 @@ def get_pdf_page_count(pdf_path: Path) -> int:
     except PDFPageCountError as e:
         raise PdfConversionError(f"Failed to get page count for {pdf_path}: {e}")
 
-def convert_pdf_to_images(pdf_path: Path, max_pages: Optional[int] = None, dpi: int = 150) -> Iterator[PageConversionResult]:
+
+def convert_pdf_to_images(
+    pdf_path: Path, max_pages: Optional[int] = None, dpi: int = 150
+) -> Iterator[PageConversionResult]:
     """Yields results of converting PDF pages to images.
 
     Args:
@@ -107,16 +119,13 @@ def convert_pdf_to_images(pdf_path: Path, max_pages: Optional[int] = None, dpi: 
         for page_num in range(1, pages_to_convert + 1):
             try:
                 images = convert_from_path(
-                    pdf_path,
-                    dpi=dpi,
-                    first_page=page_num,
-                    last_page=page_num,
-                    thread_count=1
+                    pdf_path, dpi=dpi, first_page=page_num, last_page=page_num, thread_count=1
                 )
-                yield PageConversionResult(page_number=page_num, image=images[0] if images else None, error=None)
+                yield PageConversionResult(
+                    page_number=page_num, image=images[0] if images else None, error=None
+                )
                 del images
             except Exception as e:
                 yield PageConversionResult(page_number=page_num, image=None, error=str(e))
     except Exception as e:
         raise PdfConversionError(f"Failed to process {pdf_path}: {e}")
-    

@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Tuple, TypedDict
 
+
 class ContentType(Enum):
     SECTION_HEADER = "Section header"
     TITLE = "Title"
@@ -15,6 +16,7 @@ class ContentType(Enum):
     FORMULA = "Formula"
     PICTURE = "Picture"
     TABLE = "Table"
+
 
 @dataclass
 class Document:
@@ -30,7 +32,7 @@ class Document:
             filename=self.filename,
             extension=self.extension,
             is_success_processed=self.is_success_processed,
-            processed_at=self.processed_at
+            processed_at=self.processed_at,
         )
 
     @classmethod
@@ -40,8 +42,9 @@ class Document:
             filename=orm_doc.filename,
             extension=orm_doc.extension,
             is_success_processed=orm_doc.is_success_processed,
-            processed_at=orm_doc.processed_at
+            processed_at=orm_doc.processed_at,
         )
+
 
 @dataclass
 class Page:
@@ -59,7 +62,7 @@ class Page:
             number=self.number,
             dpi=self.dpi,
             width=self.width,
-            height=self.height
+            height=self.height,
         )
 
     @classmethod
@@ -70,8 +73,9 @@ class Page:
             number=orm_page.number,
             dpi=orm_page.dpi,
             width=orm_page.width,
-            height=orm_page.height
+            height=orm_page.height,
         )
+
 
 class RawFragment(TypedDict):
     left: float
@@ -83,6 +87,7 @@ class RawFragment(TypedDict):
     page_height: int
     type: str
     text: str | None
+
 
 @dataclass
 class Fragment:
@@ -113,7 +118,7 @@ class Fragment:
             height=self.height,
             text=self.text,
             created_at=self.created_at or datetime.utcnow(),
-            cropped_at=self.cropped_at
+            cropped_at=self.cropped_at,
         )
 
     @classmethod
@@ -128,7 +133,7 @@ class Fragment:
             top=coords[1],
             width=coords[2],
             height=coords[3],
-            text=data.get("text")
+            text=data.get("text"),
         )
 
     @classmethod
@@ -145,26 +150,30 @@ class Fragment:
             height=orm_fragment.height,
             text=orm_fragment.text,
             created_at=orm_fragment.created_at,
-            cropped_at=orm_fragment.cropped_at
+            cropped_at=orm_fragment.cropped_at,
         )
+
 
 @dataclass
 class TextFragment(Fragment):
     pass
 
+
 @dataclass
 class TableFragment(Fragment):
     pass
+
 
 @dataclass
 class ImageFragment(Fragment):
     pass
 
+
 @dataclass
 class RecognizedFragment:
     recognized_fragment_id: Optional[int]
     fragment_id: int
-    
+
     recognizer: str
     text: str
     confidence: Optional[float]
@@ -175,7 +184,7 @@ class RecognizedFragment:
             fragment_id=self.fragment_id,
             recognizer=self.recognizer,
             text=self.text,
-            confidence=self.confidence
+            confidence=self.confidence,
         )
 
     @classmethod
@@ -185,6 +194,5 @@ class RecognizedFragment:
             fragment_id=orm_recognized.fragment_id,
             recognizer=orm_recognized.recognizer,
             text=orm_recognized.text,
-            confidence=orm_recognized.confidence
+            confidence=orm_recognized.confidence,
         )
-        

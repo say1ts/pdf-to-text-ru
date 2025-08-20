@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 from PIL import Image
 import logging
 
-from src.converters.pdf_to_page_images import convert_pdf_to_images, PdfConversionError, PageConversionResult
+from src.converters.pdf_to_page_images import (
+    convert_pdf_to_images,
+    PdfConversionError,
+    PageConversionResult,
+)
 from src.repository import documents as doc_repo, pages as page_repo, fragments as fragment_repo
 from src.recognizers.layout_analyzer import analyze_pdf, LayoutAnalyzerError
 from src.utils.image_saver import save_page_image, save_fragment_image
@@ -18,30 +22,28 @@ def group_fragments_by_page_number(fragments: List[RawFragment]) -> Dict[int, Li
     """Группирует фрагменты по номеру страницы (page_number из анализатора)."""
     pages: Dict[int, List[RawFragment]] = defaultdict(list)
     for fragment in fragments:
-        pages[fragment['page_number']].append(fragment)
+        pages[fragment["page_number"]].append(fragment)
     return pages
 
+
 def convert_raw_fragments_to_fragments(
-    raw_page_fragments: List[RawFragment], dpi: int, image_size: Tuple[int, int]) -> List[Fragment]:
+    raw_page_fragments: List[RawFragment], dpi: int, image_size: Tuple[int, int]
+) -> List[Fragment]:
     page_fragments = []
-    
+
     for raw_fr in raw_page_fragments:
         px_crop_box = scale_coordinates_from_pt_to_px(
-            raw_fr['left'], 
-            raw_fr['top'], 
-            raw_fr['width'],
-            raw_fr['height'],
-            image_size,
-            dpi
+            raw_fr["left"], raw_fr["top"], raw_fr["width"], raw_fr["height"], image_size, dpi
         )
         page_fragments.append(Fragment.from_dict(raw_fr, px_crop_box))
     return page_fragments
-    
+
 
 class PdfProcessor:
     """
     Инкапсулирует логику обработки одного PDF-документа.
     """
+
     def __init__(
         self,
         pdf_path: Path,
@@ -49,7 +51,7 @@ class PdfProcessor:
         dpi: int,
         session: Session,
         logger: logging.LoggerAdapter,
-        order_strategy: Callable[[List[Fragment]], List[int]]
+        order_strategy: Callable[[List[Fragment]], List[int]],
     ):
         self.pdf_path = pdf_path
         self.output_dir = output_dir
@@ -98,10 +100,14 @@ class PdfProcessor:
         self.document = doc
         return True
 
-    def _process_page(self, conv_result: PageConversionResult, all_fragments: Dict[int, List[RawFragment]]):
+    def _process_page(
+        self, conv_result: PageConversionResult, all_fragments: Dict[int, List[RawFragment]]
+    ):
         """Обрабатывает одну страницу: сохраняет, создает сущности, нарезает фрагменты."""
         if conv_result.error or not conv_result.image:
-            self.logger.error({"file": self.filename, "page": conv_result.page_number, "error": conv_result.error})
+            self.logger.error(
+                {"file": self.filename, "page": conv_result.page_number, "error": conv_result.error}
+            )
             return
 
         # 1. Создаем запись о странице в БД
@@ -114,15 +120,15 @@ class PdfProcessor:
 
         # 2.2 Преобразовываем сырые фрагменты
         page_fragments = convert_raw_fragments_to_fragments(
-            raw_fragments, self.dpi, conv_result.image._size)
+            raw_fragments, self.dpi, conv_result.image._size
+        )
         self._set_fragments_order(page_fragments)
-        
+
         # 3. Создаем записи о фрагментах в БД и нарезаем фрагменты по координатам
         self._create_fragments(page, page_fragments)
         self._crop_and_save_fragments(conv_result.image, page.number, page_fragments)
-        
-        self.logger.info({"page": page.number, "fragments_created": len(page_fragments)})
 
+        self.logger.info({"page": page.number, "fragments_created": len(page_fragments)})
 
     def _create_and_save_page(self, conv_result: PageConversionResult) -> Page:
         page_entity = Page(
@@ -131,10 +137,16 @@ class PdfProcessor:
             number=conv_result.page_number,
             dpi=self.dpi,
             width=conv_result.image.width,
-            height=conv_result.image.height
+            height=conv_result.image.height,
         )
         page_repo.create_page(self.session, page_entity)
-        save_page_image(conv_result.image, self.output_dir, self.document.filename, page_entity.number, page_entity.page_id)
+        save_page_image(
+            conv_result.image,
+            self.output_dir,
+            self.document.filename,
+            page_entity.number,
+            page_entity.page_id,
+        )
         self.logger.info({"page": page_entity.number, "status": "processed"})
         return page_entity
 
@@ -143,7 +155,9 @@ class PdfProcessor:
             frag.page_id = page.page_id
             fragment_repo.create_fragment(self.session, frag)
 
-    def _crop_and_save_fragments(self, page_image: Image.Image, page_number: int, fragments: List[Fragment]):
+    def _crop_and_save_fragments(
+        self, page_image: Image.Image, page_number: int, fragments: List[Fragment]
+    ):
         for fragment in fragments:
             try:
                 save_fragment_image(
@@ -154,12 +168,14 @@ class PdfProcessor:
                     fragment=fragment,
                 )
             except Exception as e:
-                self.logger.error({
-                    "msg": "Failed to crop fragment image",
-                    "page": page_number,
-                    "fragment_id": fragment.fragment_id,
-                    "error": str(e)
-                })
+                self.logger.error(
+                    {
+                        "msg": "Failed to crop fragment image",
+                        "page": page_number,
+                        "fragment_id": fragment.fragment_id,
+                        "error": str(e),
+                    }
+                )
 
     def _set_fragments_order(self, fragments: List[Fragment]):
         if not fragments:
@@ -167,7 +183,6 @@ class PdfProcessor:
         ordered_indices = self.order_strategy(fragments)
         for order_num, original_index in enumerate(ordered_indices):
             fragments[original_index].order_number = order_num
-
 
     def _finalize_processing(self, success: bool):
         if self.document:
@@ -180,7 +195,8 @@ class PdfProcessor:
             self.logger.info({"file": self.filename, "status": "successfully_processed"})
         else:
             self.session.rollback()
-            self.logger.error({"file": self.filename, "status": "processing_failed"})         
+            self.logger.error({"file": self.filename, "status": "processing_failed"})
+
 
 def process_single_pdf(
     pdf_path: Path,
@@ -188,7 +204,7 @@ def process_single_pdf(
     dpi: int,
     session: Session,
     logger: logging.LoggerAdapter,
-    order_strategy: Callable[[List[Fragment]], List[int]]
+    order_strategy: Callable[[List[Fragment]], List[int]],
 ) -> Optional[Document]:
     """
     Создает экземпляр PdfProcessor и запускает обработку для одного файла.
@@ -203,7 +219,7 @@ def process_bulk_pdf(
     dpi: int,
     session: Session,
     logger: logging.LoggerAdapter,
-    order_strategy: Callable[[List[Fragment]], List[int]]
+    order_strategy: Callable[[List[Fragment]], List[int]],
 ) -> List[Document]:
     """
     Обрабатывает все PDF-файлы в указанной директории.

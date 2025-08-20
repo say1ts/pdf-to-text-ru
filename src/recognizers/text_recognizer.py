@@ -10,18 +10,23 @@ from .base_recognizer import BaseRecognizer
 settings = config_provider.get_settings()
 logger = config_provider.get_logger(__name__)
 
+
 class TextRecognizerError(Exception):
     pass
+
 
 class ModelLoadError(TextRecognizerError):
     pass
 
+
 class ProcessingError(TextRecognizerError):
     pass
+
 
 _model: Optional[Qwen2VLForConditionalGeneration] = None
 _processor: Optional[AutoProcessor] = None
 _device: str = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def load_model() -> None:
     global _model, _processor
@@ -33,19 +38,21 @@ def load_model() -> None:
             torch_dtype="auto",
             device_map="auto",
             cache_dir=str(settings.TEXT_RECOGNIZER_CACHE_DIR),
-            trust_remote_code=True
+            trust_remote_code=True,
         )
         _processor = AutoProcessor.from_pretrained(
             settings.TEXT_RECOGNIZER_MODEL_NAME,
             cache_dir=str(settings.TEXT_RECOGNIZER_CACHE_DIR),
-            trust_remote_code=True
+            trust_remote_code=True,
         )
         logger.info(f"Text recognizer model loaded on {_device}")
     except Exception as e:
         raise ModelLoadError(f"Failed to load model: {str(e)}")
 
+
 class TextRecognizer(BaseRecognizer):
     recognizer_type = "text-qwen2-vl-ocr-2b-instruct"
+
     def recognize_image(self, image_path: Path) -> Optional[str]:
         load_model()
         if not image_path.exists():
@@ -61,7 +68,9 @@ class TextRecognizer(BaseRecognizer):
             }
         ]
 
-        text_input = _processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        text_input = _processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
         image_inputs, video_inputs = process_vision_info(messages)
         inputs = _processor(
             text=[text_input],
@@ -72,11 +81,17 @@ class TextRecognizer(BaseRecognizer):
         ).to(_device)
 
         generated_ids = _model.generate(**inputs, max_new_tokens=512)
-        generated_ids_trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs["input_ids"], generated_ids)]
-        output_text = _processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0].strip().replace("<|im_end|>", "").strip()
+        generated_ids_trimmed = [
+            out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs["input_ids"], generated_ids)
+        ]
+        output_text = (
+            _processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )[0]
+            .strip()
+            .replace("<|im_end|>", "")
+            .strip()
+        )
 
         logger.debug(f"Recognized text preview: {output_text[:200]}")
         return output_text if output_text.strip() else None
-    

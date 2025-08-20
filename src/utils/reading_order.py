@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from src.entities import Fragment
 
+
 class ReadingOrderService:
     def center(self, fragment: Fragment) -> tuple[float, float]:
         left, top = fragment.left, fragment.top
@@ -19,10 +20,10 @@ class ReadingOrderService:
     def get_reading_order(self, fragments: List[Fragment]) -> List[int]:
         if not fragments:
             return []
-        
+
         centers = np.array([self.center(fragment) for fragment in fragments])
         n_clusters = self._estimate_clusters(centers)
-        
+
         if n_clusters == 1:
             indices = np.argsort(centers[:, 1])
         else:
@@ -34,8 +35,9 @@ class ReadingOrderService:
             for cluster in cluster_order:
                 cluster_indices = np.where(labels == cluster)[0]
                 indices.extend(cluster_indices[np.argsort(centers[cluster_indices, 1])])
-        
+
         return indices.tolist()
+
 
 def get_default_order(fragments: List[Fragment]) -> List[int]:
     return list(range(len(fragments)))
