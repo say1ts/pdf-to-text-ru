@@ -1,4 +1,4 @@
-# RAG2: Система обработки и распознавания PDF-документов
+# pdf-to-text-ru: Система обработки и распознавания PDF-документов
 
 [![Python Version](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
